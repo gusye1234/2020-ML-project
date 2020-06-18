@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('..')
 sys.path.append('../..')
 
@@ -25,19 +26,20 @@ trace.set_seed(0)
 # Hyperparameters :
 lr = 0.0000625  # Learning rate
 alpha = 0.95  # For RMSprop momentum
-max_episodes = 40100 # About 2500000 frame
-batch_size = 32
+max_episodes = 40100  # About 2500000 frame
+batch_size = 32  # batch_size
 target_update = 10000  # Not use now
 gamma = 0.99
 # rep_buf_size = 1000000
-rep_buf_size = 1000 # for test
+rep_buf_size = 1000  # for test
 # rep_buf_ini = 50000
-rep_buf_ini = 50 # for test
+rep_buf_ini = 50  # for test
 skip_frame = 4
 epsilon_start = 1.0
 epsilon_final = 0.1
 epsilon_decay = 300000
 Soft_update = True
+Double_dqn = False  # Whether use double dqn
 TAU = 2e-3  # For soft update
 Evaluation = True  # Determine whether evaluate the agent during training
 evaluate_frequency = 400  # Frequency of evaluate
@@ -50,7 +52,8 @@ test_stander = 7200  # If test score > test_stander, stop train
 # --------------------------------------------------------------------------------------------------------------
 
 def epsilon_by_frame(step_idx):
-    """Epsilon Decay: From 1 to 0.01 ：In 1M Frames"""
+    """ epsilon_by_frame : Compute the corresponding epsilon and return it.  epsilon = 0.1 when step_idx is about 1e6
+    """
     epsilon_true = epsilon_final + (epsilon_start - epsilon_final) * math.exp(-1. * step_idx / epsilon_decay)
     return epsilon_true
 
@@ -58,7 +61,6 @@ def epsilon_by_frame(step_idx):
 # --------------------------------------------------------------------------------------------------------------
 
 def main():
-
     # Initialize environment and :
     env = atari_wrapper.make_atari('RiverraidNoFrameskip-v4')
     env = atari_wrapper.wrap_deepmind(env, clip_rewards=True, frame_stack=True, pytorch_img=True)
@@ -71,7 +73,7 @@ def main():
     target_model.eval()
     target_model.load_seq_list(target_model.seq_list())
     optimizer = optim.RMSprop(policy_model.parameters(), lr=lr, alpha=alpha)
-    
+
     # -------------------------------------------------
     # Initialize the Replay Buffer
     replay_buffer = ReplayBuffer_Init(rep_buf_size, rep_buf_ini, env, action_space)
@@ -119,7 +121,7 @@ def main():
                 action = q_value.argmax(1).data.numpy().astype(int)[0]
             else:
                 action = random.sample(range(len(action_space)), 1)[0]
-
+            # Store experience in the replay buffer
             next_observation, reward, done, info = env.step(action_space[action])
             replay_buffer.push(observation, action, reward, next_observation, done)
             observation = next_observation
@@ -149,7 +151,13 @@ def main():
                 q_value = q_values.Gather(actions.squeeze().long())  # torch.Size([32, 1])
                 next_q_value = next_q_values.max(1)[0].unsqueeze(1)  # torch.Size([32, 1])
                 expected_q_value = rewards + gamma * next_q_value * (1 - dones)
-
+                """
+                if Double_dqn:  # Whether use double dqn
+                    selected_action = policy_model(next_observations).argmax(dim=1, keepdim=True)
+                    next_q_value = next_q_values.gather(1, selected_action)
+                else:
+                    next_q_value = next_q_values.max(1)[0].unsqueeze(1)  # torch.Size([32, 1])
+                """
                 mse = nn.MSE()
                 loss = mse(q_value, expected_q_value)
                 # loss = huber_loss(q_value, expected_q_value)
@@ -214,19 +222,18 @@ def main():
                 if episode_true % evaluate_frequency == 0:
                     test_score = evaluate(policy_model,
                                           action_space,
-                                          device,
                                           episode_true,
                                           epsilon=evaluate_epsilon,
                                           num_episode=evaluate_episodes)
                     print("test_score : ", test_score, "  ", "test episodes: ", evaluate_episodes)
 
                     if test_score > test_stander:  # Save the model if the test score > test_stander
-                        trace.save('./dqn_RiverRaid_policy_model_state_dict.pth',policy_model.seq_list())
+                        trace.save('./dqn_RiverRaid_policy_model_state_dict.pth', policy_model.seq_list())
                         print("Test score > %d , stop train" % test_stander)
                         break
         # Save the model
         if episode % save_frequency == 0:
-            trace.save('./dqn_RiverRaid_policy_model_state_dict.pth',policy_model.seq_list())
+            trace.save('./dqn_RiverRaid_policy_model_state_dict.pth', policy_model.seq_list())
 
     plt_result(average_100_episode, max_100_episode, frame_1000)
     plt_loss(loss_list, frame_1000)

@@ -58,9 +58,13 @@ def plt_loss(loss_list, frame_1000):
     fig.savefig('Riverraid Loss.png')
 
 
-
 # --------------------------------------------------------------------------------------------------------------
 def ReplayBuffer_Init(rep_buf_size, rep_buf_ini, env, action_space):
+    """Initialize the ReplayBuffer with the size of rep_buf_ini
+    :param rep_buf_ini: size of initialized replay buffer
+    :param action_space: action space dimension of game
+    :return:
+    """
     replay_buffer = ReplayBuffer(rep_buf_size)
     while len(replay_buffer) < rep_buf_ini:
 
@@ -72,8 +76,8 @@ def ReplayBuffer_Init(rep_buf_size, rep_buf_ini, env, action_space):
             # t_observation.shape： torch.Size([4, 84, 84])
             # t_observation.shape：torch.Size([1, 4, 84, 84])
             t_observation = t_observation.view(1, t_observation.shape[0],
-                                                t_observation.shape[1],
-                                                t_observation.shape[2])
+                                               t_observation.shape[1],
+                                               t_observation.shape[2])
             action = random.sample(range(len(action_space)), 1)[0]
 
             next_observation, reward, done, info = env.step(action_space[action])
@@ -87,7 +91,15 @@ def ReplayBuffer_Init(rep_buf_size, rep_buf_ini, env, action_space):
 
 
 # --------------------------------------------------------------------------------------------------------------
-def evaluate(policy_model, action_space, device, episode_true, epsilon=0.01, num_episode=10):
+def evaluate(policy_model, action_space, episode_true, epsilon=0.01, num_episode=10):
+    """ Evaluate the performance of the agent
+
+        policy_model: the agent model
+        action_space: action space dimension of game
+        episode_true: the training episodes
+        epsilon : the probability of agent choose random action
+        num_episode ： the test episodes of evaluation process
+    """
     env = atari_wrapper.make_atari('RiverraidNoFrameskip-v4')
     env = atari_wrapper.wrap_deepmind(env, clip_rewards=False, frame_stack=True, pytorch_img=True)
     test_scores = []
