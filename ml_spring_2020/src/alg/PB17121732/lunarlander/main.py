@@ -74,7 +74,7 @@ def dqn(n_episodes=2000, max_t=1000, eps_start=1.0, eps_end=0.01, eps_decay=0.99
             plt_scores_mean.append(np.mean(scores_window))
             plt_scores_max.append(np.max(scores_window))
             plt_frame.append(frame_num)
-            pytrace.save(agent.qnetwork_local.seq_list(), 'weights_list.pth') 
+            pytrace.save('weights_list.pth', agent.qnetwork_local.seq_list()) 
             if np.mean(scores_window) >= 250. :
                 np.savetxt("means.txt", plt_scores_mean)
                 np.savetxt("maxs.txt", plt_scores_max)
