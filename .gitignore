@@ -16,5 +16,6 @@ __pycache__/
 tmp/
 *.pth
 *.pt
+*.csv
 weights_list.pth
 checkpoint.pth
