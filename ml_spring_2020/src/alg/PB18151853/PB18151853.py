@@ -44,9 +44,9 @@ class PB18151853(RL_alg):
                 )
             )
         pytrace.prYellow(f"load weights from: {join(root_path, './riverraid/best_list.pth')}")
-        self.state = np.zeros([84, 84])
+        self.state = np.zeros([4, 84, 84])
         #self.state = self.WarpFrame(self.state)
-        self.state = np.stack([self.state] * 4, axis=0)
+        # self.state = np.stack([self.state] * 4, axis=0)
         
         
     def step(self, state):
