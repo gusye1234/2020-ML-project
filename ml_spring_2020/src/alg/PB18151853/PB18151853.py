@@ -70,7 +70,7 @@ class PB18151853(RL_alg):
         frame = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
         frame = cv2.resize(frame, (84, 84), interpolation=cv2.INTER_AREA)
         #return frame[:, :, None]
-        return frame[:, :]/255.0
+        return frame / 255.0
 
     def FrameStack(self, new_obs, obs):
         """
@@ -81,6 +81,5 @@ class PB18151853(RL_alg):
         new_obs = self.WarpFrame(new_obs)
         obs[0 : 3, :, :] = obs[1 :, :, :]
         obs[3, :, :] = new_obs
-        # self.state.append(new_obs)
         return obs
 
