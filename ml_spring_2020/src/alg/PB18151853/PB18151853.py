@@ -16,6 +16,7 @@ from pytrace import tracer
 from agent import Agent
 import cv2
 import numpy as np
+from collections import deque
 
 # ----------------------------------------------------------
 # set random seed to re-perform
@@ -46,7 +47,8 @@ class PB18151853(RL_alg):
         pytrace.prYellow(f"load weights from: {join(root_path, './riverraid/best_list.pth')}")
         self.state = np.zeros([4, 84, 84])
         #self.state = self.WarpFrame(self.state)
-        # self.state = np.stack([self.state] * 4, axis=0)
+        #self.state = np.stack([self.state] * 4, axis=0)
+        # self.state = deque([np.zeros([84, 84, 4])], maxlen=4)
         
         
     def step(self, state):
@@ -68,7 +70,7 @@ class PB18151853(RL_alg):
         frame = cv2.cvtColor(obs, cv2.COLOR_RGB2GRAY)
         frame = cv2.resize(frame, (84, 84), interpolation=cv2.INTER_AREA)
         #return frame[:, :, None]
-        return frame / 255.0
+        return frame[:, :]/255.0
 
     def FrameStack(self, new_obs, obs):
         """
@@ -79,5 +81,6 @@ class PB18151853(RL_alg):
         new_obs = self.WarpFrame(new_obs)
         obs[0 : 3, :, :] = obs[1 :, :, :]
         obs[3, :, :] = new_obs
+        # self.state.append(new_obs)
         return obs
 

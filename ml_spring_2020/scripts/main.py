@@ -21,7 +21,7 @@ def init_env_policy(alg, env_name):
 
 if __name__ == '__main__':
     main_params = get_params_from_file('configs.main_setting',params_name='params')
-
+    print(main_params)
     list_modules=os.listdir('src/alg')
     list_modules.remove('RL_alg.py')
     for module_name in list_modules:
